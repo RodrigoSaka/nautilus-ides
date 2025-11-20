@@ -1,35 +1,11 @@
 #!/bin/bash
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+source "$(dirname "$0")/common.sh"
 
-# Check for arguments
-if [ $# -eq 0 ]; then
-    echo -e "${RED}Error: No IDE specified.${NC}"
-    echo -e "${YELLOW}Usage: $0 <ide>${NC}"
-    echo -e "${YELLOW}Supported IDEs: antigravity, code, cursor, windsurf${NC}"
-    exit 1
-fi
+get_ide_selection "$1" "No IDE specified. Please select one:"
 
-IDE=$1
-SCRIPT_NAME="${IDE}-nautilus.py"
-
-# Validate IDE
-case $IDE in
-    antigravity|code|cursor|windsurf)
-        echo -e "${GREEN}Selected IDE: $IDE${NC}"
-        echo ""
-        ;;
-    *)
-        echo -e "${RED}Error: Invalid IDE specified '$IDE'.${NC}"
-        echo -e "${YELLOW}Supported IDEs: antigravity, code, cursor, windsurf${NC}"
-        exit 1
-        ;;
-esac
+echo -e "${GREEN}Selected IDE: $IDE${NC}"
+echo ""
 
 # Install python-nautilus
 echo -e "${BLUE}Installing python-nautilus...${NC}"
