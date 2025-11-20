@@ -1,10 +1,17 @@
 #!/bin/bash
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
 # Check for arguments
 if [ $# -eq 0 ]; then
-    echo "Error: No IDE specified."
-    echo "Usage: $0 <ide>"
-    echo "Supported IDEs: antigravity, code, cursor, windsurf"
+    echo -e "${RED}Error: No IDE specified.${NC}"
+    echo -e "${YELLOW}Usage: $0 <ide>${NC}"
+    echo -e "${YELLOW}Supported IDEs: antigravity, code, cursor, windsurf${NC}"
     exit 1
 fi
 
@@ -14,17 +21,18 @@ SCRIPT_NAME="${IDE}-nautilus.py"
 # Validate IDE
 case $IDE in
     antigravity|code|cursor|windsurf)
-        echo "Selected IDE: $IDE"
+        echo -e "${GREEN}Selected IDE: $IDE${NC}"
+        echo ""
         ;;
     *)
-        echo "Error: Invalid IDE specified '$IDE'."
-        echo "Supported IDEs: antigravity, code, cursor, windsurf"
+        echo -e "${RED}Error: Invalid IDE specified '$IDE'.${NC}"
+        echo -e "${YELLOW}Supported IDEs: antigravity, code, cursor, windsurf${NC}"
         exit 1
         ;;
 esac
 
 # Install python-nautilus
-echo "Installing python-nautilus..."
+echo -e "${BLUE}Installing python-nautilus...${NC}"
 if type "pacman" > /dev/null 2>&1
 then
     # check if already install, else install
@@ -33,7 +41,7 @@ then
     then
         sudo pacman -S --noconfirm python-nautilus
     else
-        echo "python-nautilus is already installed"
+        echo -e "${GREEN}python-nautilus is already installed${NC}"
     fi
 elif type "apt-get" > /dev/null 2>&1
 then
@@ -51,7 +59,7 @@ then
     then
         sudo apt-get install -y $package_name
     else
-        echo "$package_name is already installed."
+        echo -e "${GREEN}$package_name is already installed.${NC}"
     fi
 elif type "dnf" > /dev/null 2>&1
 then
@@ -60,23 +68,27 @@ then
     then
         sudo dnf install -y nautilus-python
     else
-        echo "nautilus-python is already installed."
+        echo -e "${GREEN}nautilus-python is already installed.${NC}"
     fi
 else
-    echo "Failed to find python-nautilus, please install it manually."
+    echo -e "${RED}Failed to find python-nautilus, please install it manually.${NC}"
 fi
+echo ""
 
 # Remove previous version and setup folder
-echo "Removing previous version (if found)..."
+echo -e "${BLUE}Removing previous version (if found)...${NC}"
 mkdir -p ~/.local/share/nautilus-python/extensions
 rm -f ~/.local/share/nautilus-python/extensions/$SCRIPT_NAME
+echo ""
 
 # Download and install the extension
-echo "Downloading newest version for $IDE..."
+echo -e "${BLUE}Downloading newest version for $IDE...${NC}"
 wget -q -O ~/.local/share/nautilus-python/extensions/$SCRIPT_NAME https://raw.githubusercontent.com/RodrigoSaka/nautilus-ides/main/scripts/$SCRIPT_NAME
+echo ""
 
 # Restart nautilus
-echo "Restarting nautilus..."
-nautilus -q
+echo -e "${BLUE}Restarting nautilus...${NC}"
+nautilus -q > /dev/null 2>&1
+echo ""
 
-echo "Installation Complete for $IDE"
+echo -e "${GREEN}Installation Complete for $IDE${NC}"
