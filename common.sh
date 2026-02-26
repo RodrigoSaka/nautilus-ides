@@ -35,3 +35,10 @@ get_ide_selection () {
 
     SCRIPT_NAME="${IDE}-nautilus.py"
 }
+
+# Get IDE name by captalizing first letter 
+get_ide_name () {
+    local ide=$1
+
+    IDE_NAME="${ide^}"
+}
