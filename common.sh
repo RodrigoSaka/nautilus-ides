@@ -313,3 +313,49 @@ install_python_nautilus() {
 
     echo ""
 }
+
+# Get IDE name by captalizing first letter 
+get_ide_name () {
+    local ide=$1
+    local ide_custom_name
+    IDE_NAME="${ide^}"
+
+    echo -e "${YELLOW}Current IDE display name: $IDE_NAME ${NC}"
+    read -p "(Optional) Enter custom display name (enter for skiping): " ide_custom_name
+
+    if [ -n "$ide_custom_name" ]; then
+        IDE_NAME="$ide_custom_name"
+    fi
+}
+
+get_ide_setup () {
+    NEW_WINDOW_ARG="--new-window "
+    ALWAYS_OPEN_NEW_WINDOW=0
+    local answer
+
+    if [ "$CUSTOM_IDE" = "1" ]; then
+        read -p "Does your IDE have a [new-window] argument? [y/n]: " answer
+        answer="${answer^}"
+        
+        if [ "$answer" = "Y" ]; then
+            read -p "Enter the [new-window] argument of your IDE (default: --new-window): " answer
+            
+            if [ -n "$answer" ]; then
+                NEW_WINDOW_ARG="$answer "
+            else
+                NEW_WINDOW_ARG="--new-window "
+            fi
+        else
+            NEW_WINDOW_ARG=""
+            return 0
+        fi
+    fi
+    
+
+    read -p "Do you want your IDE to always open files or folders in a new window? [y/n]: " answer
+    answer="${answer^}"
+    if [ "$answer" = "Y" ]; then
+        ALWAYS_OPEN_NEW_WINDOW=1
+    fi
+}
+

@@ -68,7 +68,10 @@ Example:
 Run the following command:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/RodrigoSaka/nautilus-ides/main/install.sh | bash
+git clone https://github.com/RodrigoSaka/nautilus-ides.git
+cd nautilus-ides
+./install.sh
+
 ```
 
 This installs the selected IDE using the generic extension template.
@@ -78,7 +81,9 @@ This installs the selected IDE using the generic extension template.
 To remove one IDE installed by this project, run:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/RodrigoSaka/nautilus-ides/main/uninstall.sh | bash
+cd nautilus-ides
+./uninstall.sh
+
 ```
 
 The uninstall flow only lists IDEs that were installed by this project.
