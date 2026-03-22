@@ -2,27 +2,70 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🚀 Description
+## Description
 
-This repository provides a universal Nautilus extension generator to add "Open with..." context menu support for **any** IDE or text editor, allowing you to open files and folders directly from your file explorer.
+This project provides Nautilus context menu integrations for IDEs using a single Python extension template.
 
-### Supported IDEs:
-- **Out-of-the-box presets:** VS Code (`code`), Cursor (`cursor`), Windsurf (`windsurf`), and Antigravity (`antigravity`).
-- **Universal Support:** A `[custom]` option allows you to generate extensions for *any* other tool (e.g., Neovim, Zed, Sublime Text) by defining your own binary command and window arguments interactively!
+Instead of keeping one Python script per IDE, the installer reads a repository-controlled catalog, renders the generic template with the selected IDE data, and installs the final extension into Nautilus.
+
+The target machine does not keep an editable IDE catalog. Supported IDEs are controlled only by this repository.
 
 This repository is based on the excellent work from [code-nautilus](https://github.com/harry-cpp/code-nautilus) by harry-cpp.
 
-## 🎯 Features
+## Features
 
-- Right-click to open files in your favorite IDE.
-- Open entire folders directly from the context menu.
-- **Dynamic Template Engine:** Automatically configures your extension based on your IDE's specific arguments (like `--new-window` support).
-- **Atomic Installation:** Safe and robust installation process that prevents corrupted states.
-- Clean and modern integration with Nautilus.
+- One generic extension template
+- Repository-controlled IDE catalog
+- Cleaner install and uninstall flow
+- Easy to extend with new IDE commands
+- Open files or folders from Nautilus
 
-## 🛠️ Installation / Update
+## Supported IDEs
 
-Clone this repository and run the interactive installation script:
+Current defaults:
+
+- **Antigravity** (`antigravity`)
+- **VS Code** (`code`)
+- **Cursor** (`cursor`)
+- **Windsurf** (`windsurf`)
+
+## How It Works
+
+1. `install.sh` loads the IDE catalog from `config/ides.conf`
+2. The user selects one IDE from the allowed list
+3. The installer renders `scripts/nautilus-ide-template.py`
+4. A final extension file like `cursor-nautilus.py` is written to Nautilus extensions
+5. The installation is registered so `uninstall.sh` knows what it can remove
+
+## IDE Catalog
+
+The repository file `config/ides.conf` uses this format:
+
+```text
+id|label|command|new_window
+```
+
+Example:
+
+```text
+zed|Zed|zed|false
+code-insiders|Code Insiders|code-insiders|false
+```
+
+Notes:
+- `id`: unique identifier
+- `label`: text shown in Nautilus
+- `command`: executable or full command used to launch the IDE
+- `new_window`: `true` or `false`
+
+Example:
+
+- `cursor|Cursor|cursor|false`
+- `code-insiders|Code Insiders|code-insiders|false`
+
+## Installation
+
+Run the following command:
 
 ```bash
 git clone https://github.com/RodrigoSaka/nautilus-ides.git
@@ -31,9 +74,11 @@ cd nautilus-ides
 
 ```
 
-## 🗑️ Uninstallation
+This installs the selected IDE using the generic extension template.
 
-To remove an extension, simply run the uninstaller from the cloned directory:
+## Uninstallation
+
+To remove one IDE installed by this project, run:
 
 ```bash
 cd nautilus-ides
@@ -41,26 +86,52 @@ cd nautilus-ides
 
 ```
 
-## 📦 Requirements
+The uninstall flow only lists IDEs that were installed by this project.
 
-* Python Nautilus (`python-nautilus` package)
-* Your chosen IDE
-* Nautilus file manager
+## Requirements
 
-## 📝 Usage
+- Python Nautilus
+- Your chosen IDE installed in the system
+- Nautilus file manager
+
+## Usage
 
 1. Right-click on any file to open it in the IDE
 2. Right-click on a folder to open it in the IDE
-3. Or right-click on empty space inside a folder to open that directory in your IDE
+3. Right-click on empty space in a folder to open that folder in the IDE
 
-## 🤝 Contributing
+## Adding a New IDE
+
+1. Add a new line to `config/ides.conf`
+2. Use a unique `id`
+3. Set the label that should appear in Nautilus
+4. Set the launch command available on the user system
+5. Choose whether `--new-window` should be forced by default
+
+Example:
+
+```text
+zed|Zed|zed|false
+```
+
+No extra Python file is needed. The installer will reuse the same template automatically.
+
+## Project Structure
+
+- `install.sh`: installs one selected IDE
+- `uninstall.sh`: removes one installed IDE
+- `common.sh`: shared shell helpers
+- `config/ides.conf`: repository-controlled IDE catalog
+- `scripts/nautilus-ide-template.py`: generic Nautilus extension template
+
+## Contributing
 
 Feel free to submit issues and enhancement requests!
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
-## 👥 Author
+## Author
 
-Created and maintained by Rodrigo Sakaguchi.
+Created and maintained by Rodrigo Sakaguchi

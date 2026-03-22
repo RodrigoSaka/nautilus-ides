@@ -1,65 +1,60 @@
 #!/bin/bash
+set -euo pipefail
 
-source "$(dirname "$0")/common.sh"
+REPO_RAW_BASE="https://raw.githubusercontent.com/RodrigoSaka/nautilus-ides/main"
 
-check_root
+load_common() {
+    local script_dir common_path script_source
 
-check_python_nautilus
+    script_source="${BASH_SOURCE[0]}"
 
-get_ide_selection "Select an IDE to install:"
+    # When this script is piped into bash, BASH_SOURCE[0] is empty and
+    # dirname would resolve to the current working directory. Only trust a
+    # local common.sh when install.sh itself comes from a real file.
+    if [ -n "$script_source" ] && [ -f "$script_source" ]; then
+        script_dir="$(cd "$(dirname "$script_source")" && pwd 2>/dev/null)"
+        common_path="${script_dir}/common.sh"
 
-echo -e "${GREEN}Selected IDE: $IDE${NC}"
+        if [ -f "$common_path" ]; then
+            # shellcheck source=./common.sh
+            source "$common_path"
+            return
+        fi
+    fi
 
-get_ide_name $IDE
+    if command -v curl > /dev/null 2>&1; then
+        # Support execution via: wget/curl .../install.sh | bash
+        source /dev/stdin <<< "$(curl -fsSL "${REPO_RAW_BASE}/common.sh")"
+        return
+    fi
 
-get_ide_setup
+    if command -v wget > /dev/null 2>&1; then
+        source /dev/stdin <<< "$(wget -qO- "${REPO_RAW_BASE}/common.sh")"
+        return
+    fi
 
-echo ""
-
-# Create nautilus extension folder if it doesn't exists
-mkdir -p ~/.local/share/nautilus-python/extensions
-
-# Download and install the extension
-echo -e "${BLUE}Downloading newest script template...${NC}"
-# Verify if the installation was successful
-if wget -q -O /tmp/$SCRIPT_NAME https://raw.githubusercontent.com/RodrigoSaka/nautilus-ides/main/scripts/ide-nautilus-template.py ; then
-    echo -e "${GREEN}Download completed successfully.${NC}"
-else
-    echo -e "${RED}Download failed.${NC}" >&2
+    echo "Failed to load common.sh. Install curl or wget, or run from a local checkout."
     exit 1
-fi
+}
+
+load_common
+
+get_available_ide_selection "Select an IDE to install:"
+
+print_success "Selected IDE: $IDE_LABEL"
 echo ""
 
-# Replacing IDE name and command on the script 
-echo -e "${BLUE}Building script for $IDE...${NC}"
+install_python_nautilus
 
-sed -i "s/__IDE_COMMAND__/$IDE/g" /tmp/$SCRIPT_NAME
-sed -i "s/__IDE_NAME__/$IDE_NAME/g" /tmp/$SCRIPT_NAME
+SCRIPT_NAME="$(get_extension_script_name "$IDE")"
+IDE_RECORD="$(get_ide_record "$IDE")" || fail "Failed to resolve IDE ${IDE}."
 
-# Setting up IDE arguments
-if [ -n "$NEW_WINDOW_ARG" ]; then
-    sed -i "s/__NEW_WINDOW_SUPPORT__/True/g" /tmp/$SCRIPT_NAME
-    sed -i "s/__NEW_WINDOW_ARG__/$NEW_WINDOW_ARG/g" /tmp/$SCRIPT_NAME
-else 
-    sed -i "s/__NEW_WINDOW_SUPPORT__/False/g" /tmp/$SCRIPT_NAME
-    sed -i "s/__NEW_WINDOW_ARG__//g" /tmp/$SCRIPT_NAME
-fi
-
-# Setting up new-window always
-if [ "$ALWAYS_OPEN_NEW_WINDOW" -eq "1" ]; then
-    sed -i "s/__NEW_WINDOW_ALWAYS__/True/g" /tmp/$SCRIPT_NAME
-else 
-    sed -i "s/__NEW_WINDOW_ALWAYS__/False/g" /tmp/$SCRIPT_NAME
-fi
-echo -e "${GREEN}Script built successfully.${NC}"
+IFS='|' read -r IDE_ID IDE_LABEL IDE_COMMAND IDE_NEW_WINDOW <<< "$IDE_RECORD"
+print_info "Installing generic Nautilus extension for ${IDE_LABEL}..."
+TEMPLATE_CONTENT="$(render_extension_template "$IDE_ID" "$IDE_LABEL" "$IDE_COMMAND" "$IDE_NEW_WINDOW")"
+write_extension_file "$SCRIPT_NAME" "$TEMPLATE_CONTENT"
+register_installed_ide "$IDE_ID" "$IDE_LABEL" "$SCRIPT_NAME"
 echo ""
 
-# Move recent built script to nautilus extensions directory
-mv /tmp/$SCRIPT_NAME ~/.local/share/nautilus-python/extensions/$SCRIPT_NAME
-
-# Restart nautilus
-echo -e "${BLUE}Restarting nautilus...${NC}"
-nautilus -q > /dev/null 2>&1
-echo ""
-
-echo -e "${GREEN}Installation completed for $IDE.${NC}"
+restart_nautilus
+print_success "Installation Complete for ${IDE_LABEL}"
